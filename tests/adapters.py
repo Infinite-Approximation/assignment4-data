@@ -6,31 +6,37 @@ from typing import Any
 
 
 def run_extract_text_from_html_bytes(html_bytes: bytes) -> str | None:
-    raise NotImplementedError
-
+    from cs336_data.extrace_text import extract_text_from_html_bytes
+    return extract_text_from_html_bytes(html_bytes)
 
 def run_identify_language(text: str) -> tuple[Any, float]:
-    raise NotImplementedError
+    from cs336_data.language_identification import identify_language
+    return identify_language(text)
 
 
 def run_mask_emails(text: str) -> tuple[str, int]:
-    raise NotImplementedError
+    from cs336_data.mask import mask_emails
+    return mask_emails(text)
 
 
 def run_mask_phone_numbers(text: str) -> tuple[str, int]:
-    raise NotImplementedError
+    from cs336_data.mask import mask_phone_numbers
+    return mask_phone_numbers(text)
 
 
 def run_mask_ips(text: str) -> tuple[str, int]:
-    raise NotImplementedError
+    from cs336_data.mask import mask_ips
+    return mask_ips(text)
 
 
 def run_classify_nsfw(text: str) -> tuple[Any, float]:
-    raise NotImplementedError
+    from cs336_data.harmful_detect import classify_nsfw
+    return classify_nsfw(text)
 
 
 def run_classify_toxic_speech(text: str) -> tuple[Any, float]:
-    raise NotImplementedError
+    from cs336_data.harmful_detect import classify_toxic_speech
+    return classify_toxic_speech(text)
 
 
 def run_classify_quality(text: str) -> tuple[Any, float]:
@@ -38,13 +44,15 @@ def run_classify_quality(text: str) -> tuple[Any, float]:
 
 
 def run_gopher_quality_filter(text: str) -> bool:
-    raise NotImplementedError
+    from cs336_data.quality_filter import gopher_classify_quality
+    return gopher_classify_quality(text)
 
 
 def run_exact_line_deduplication(
     input_files: list[os.PathLike], output_directory: os.PathLike
 ):
-    raise NotImplementedError
+    from cs336_data.deduplicate import exact_line_deduplication
+    return exact_line_deduplication(input_files=input_files, output_directory=output_directory)
 
 
 def run_minhash_deduplication(
@@ -55,4 +63,12 @@ def run_minhash_deduplication(
     jaccard_threshold: float,
     output_directory: os.PathLike,
 ):
-    raise NotImplementedError
+    from cs336_data.deduplicate import minhash_deduplication
+    return minhash_deduplication(
+        input_files=input_files,
+        num_hashes=num_hashes,
+        num_bands=num_bands,
+        ngrams=ngrams,
+        jaccard_threshold=jaccard_threshold,
+        output_directory=output_directory
+    )
