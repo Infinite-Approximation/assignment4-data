@@ -2,8 +2,13 @@ import fasttext
 from typing import Any
 from cs336_data.extrace_text import extract_warc_file
 
-def identify_language(text: str, model_path: str = 'cs336_data/checkpoint/lid.176.bin') -> tuple[Any, float]:
-    model = fasttext.load_model(path=model_path)
+def identify_language(
+        text: str, 
+        model_path: str = 'cs336_data/checkpoint/lid.176.bin',
+        model: Any = None # 添加一个这个参数，使得不用每次调用这个函数都需要加载一次函数
+    ) -> tuple[Any, float]:
+    if model is None:
+        model = fasttext.load_model(path=model_path)
     lables, scores = model.predict(text=text.replace('\n', ''), k=1) # ('__label__en',) [0.15209572]
     return (lables[0].replace('__label__', ''), scores[0])
 

@@ -22,6 +22,9 @@ def alphabetic_word_ratio(words: List[str]):
     return count / len(words)
 
 def gopher_classify_quality(text: str) -> tuple[Any, float]:
+    """
+    对于质量太低的text，返回False
+    """
     words = word_tokenize(text)
     # Contain less than 50 or more than 100,000 words
     if len(words) < 50 or len(words) > 100000:
