@@ -24,7 +24,7 @@ def sample_url(input_file: os.PathLike,
 
 def sample_positive_urls_and_download(
     file_path: str = "cs336_data/data/enwiki-20240420-extracted_urls.txt",
-    max_urls: int = 1000000,
+    max_urls: int = 10000,
     output_file_path: str = "cs336_data/data/subsampled_positive_urls.txt",
 ):
     """
