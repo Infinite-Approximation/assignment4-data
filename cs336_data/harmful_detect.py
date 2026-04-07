@@ -16,7 +16,6 @@ def classify_nsfw(
     )  # (('__label__non-nsfw',), array([1.00001001]))
     return (labels[0].replace("__label__", ""), scores[0])
 
-
 def classify_toxic_speech(
     text: str,
     model_path: str = "cs336_data/checkpoint/jigsaw_fasttext_bigrams_hatespeech_final.bin",
@@ -29,8 +28,20 @@ def classify_toxic_speech(
     )  # (('__label__non-toxic',), array([1.00001001]))
     return (labels[0].replace("__label__", ""), scores[0])
 
+def is_harmful_content(
+        text: str, 
+        nsfw_detection_model: Any = None,
+        toxic_detection_model: Any = None
+    ):
+    nsfw_label, nsfw_score = classify_nsfw(text=text, model=nsfw_detection_model)
+    toxic_label, toxic_score = classify_toxic_speech(text=text, model=toxic_detection_model)
+    if nsfw_label == 'nsfw' or nsfw_score < 0.5:
+        return True
+    if toxic_label == 'toxic' or toxic_score < 0.5:
+        return True
+    return False
 
-def classify_harmful_content(file_path: str, max_records: int = 50):
+def classify_harmful_content_in_warc_file(file_path: str, max_records: int = 50):
     records = extract_warc_file(file_path=file_path, max_records=max_records)
     for i, record in enumerate(records):
         print(f"正在处理第 {i} 个 record")
@@ -43,5 +54,6 @@ def classify_harmful_content(file_path: str, max_records: int = 50):
 
 
 if __name__ == "__main__":
-    file_path = "CC-MAIN-20250417135010-20250417165010-00065.warc.gz"
-    classify_harmful_content(file_path)
+    # file_path = "CC-MAIN-20250417135010-20250417165010-00065.warc.gz"
+    # classify_harmful_content_in_warc_file(file_path)
+    print(classify_toxic_speech("fuck you, Thank you"))

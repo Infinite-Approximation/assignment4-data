@@ -16,7 +16,13 @@ def mask_ips(text: str) -> tuple[str, int]:
     result_str, count = re.subn(pattern, "|||IP_ADDRESS|||", text)
     return (result_str, count)
 
-def mask_pii(file_path: str, max_records: int = 200):
+def mask_pii(text: str) -> str:
+    text = mask_emails(text)[0]
+    text = mask_phone_numbers(text)[0]
+    text = mask_ips(text)[0]
+    return text
+
+def mask_pii_in_warc_file(file_path: str, max_records: int = 200):
     from cs336_data.extrace_text import extract_warc_file
     texts = extract_warc_file(file_path=file_path, max_records=max_records)
     replace_count = 0
@@ -33,5 +39,7 @@ def mask_pii(file_path: str, max_records: int = 200):
                 return
 
 if __name__ == '__main__':
-    file_path = 'CC-MAIN-20250417135010-20250417165010-00065.warc.gz'
-    mask_pii(file_path=file_path)
+    # file_path = 'CC-MAIN-20250417135010-20250417165010-00065.warc.gz'
+    # mask_pii_in_warc_file(file_path=file_path)
+
+    print(mask_pii(text="My phone number is 122-332-2345, My email is 2310572998jin@gmail.com"))

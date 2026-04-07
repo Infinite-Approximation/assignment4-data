@@ -11,22 +11,29 @@ from cs336_data.language_identification import identify_language
 from cs336_data.quality_filter import gopher_classify_quality
 from tqdm import tqdm
 
+def sample_url(input_file: os.PathLike,
+               output_file: os.PathLike,
+               sample_num: int = 200,
+               seed: int = 42):
+    with open(input_file, mode='r') as rf:
+        input_urls = rf.read().split('\n')
+    random.seed(seed)
+    output_urls = random.sample(input_urls, k=sample_num)
+    with open(output_file, mode='w') as wf:
+        wf.write('\n'.join(output_urls))
 
-def sample_positive_urls(
+def sample_positive_urls_and_download(
     file_path: str = "cs336_data/data/enwiki-20240420-extracted_urls.txt",
     max_urls: int = 1000000,
     output_file_path: str = "cs336_data/data/subsampled_positive_urls.txt",
 ):
     """
-    使用 shuf -n {max_urls} {file_path} > {output_file_path} 采样url
-    比如 shuf -n 2000 cs336_data/data/enwiki-20240420-extracted_urls.txt > cs336_data/data/subsampled_positive_urls.txt
-    然后使用 
 
     wget --timeout=5 \
         --tries=1 \
         --max-redirect=1 \
         --connect-timeout=2 \
-        --read-timeout=2 \
+        --read-timeout=5 \
         --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
         -i cs336_data/data/subsampled_positive_urls.txt \
         --warc-file=cs336_data/data/subsampled_positive_urls_10000 \
@@ -34,13 +41,16 @@ def sample_positive_urls(
 
     抓取url的内容并转化为warc文件
     """
-    sample_command = f"shuf -n {max_urls} {file_path} > {output_file_path}"
-    subprocess.run(sample_command, shell=True, check=True)
-    download_commmand = f'wget –-timeout=5 \
-                            --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36" \
-                            -i {output_file_path} \
-                            --warc-file=cs336_data/data/subsampled_positive_urls.warc \
-                            -O /dev/null'
+    sample_url(input_file=file_path, output_file=output_file_path, sample_num=max_urls)
+    download_commmand = f'wget  –-timeout=5 \
+                                --tries=1 \
+                                --max-redirect=1 \
+                                --connect-timeout=2 \
+                                --read-timeout=5 \
+                                --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36" \
+                                -i {output_file_path} \
+                                --warc-file=cs336_data/data/subsampled_positive_urls \
+                                -O /dev/null'
     subprocess.run(download_commmand, shell=True, check=True)
 
 
@@ -74,7 +84,7 @@ def prepare_data(
     positive_sample_warc_file: os.PathLike = "cs336_data/data/subsampled_positive_urls.warc.gz",
     negative_sample_warc_file: os.PathLike = "cs336_data/data/CC-MAIN-20250417135010-20250417165010-00065.warc.gz",
     output_file: os.PathLike = "cs336_data/data/train.txt",
-    max_records: int = 1000,
+    max_records: int = 10000,
     language_identification_model_path: str = "cs336_data/checkpoint/lid.176.bin",
     nsfw_detection_model_path: str = "cs336_data/checkpoint/jigsaw_fasttext_bigrams_nsfw_final.bin",
     toxic_detection_model_path: str = "cs336_data/checkpoint/jigsaw_fasttext_bigrams_hatespeech_final.bin",
@@ -83,9 +93,13 @@ def prepare_data(
     positive_samples = extract_warc_file(
         positive_sample_warc_file, max_records=max_records
     )
+    # 可能取不到max_records
+    if len(positive_samples) != max_records:
+        max_records = len(positive_samples)
+    print(f"len(positive_samples)={len(positive_samples)}")
     print("正在取出negative samples...")
     negative_samples = extract_warc_file(
-        negative_sample_warc_file, max_records=max_records * 10
+        negative_sample_warc_file, max_records=max_records * 5
     )
     # 随机采样
     random.seed(42)
@@ -139,9 +153,12 @@ def train_quality_classification_model(
 
 
 def classify_quality(
-    text: str, model_path: str = "cs336_data/checkpoint/quality.bin"
+    text: str, 
+    model_path: str = "cs336_data/checkpoint/quality.bin",
+    model: Any = None
 ) -> tuple[Any, float]:
-    model = fasttext.load_model(model_path)
+    if model is None:
+        model = fasttext.load_model(model_path)
     labels, scores = model.predict(
         text.replace("\n", " ")
     )  # ('__label__low_quality',) [0.50003731]
@@ -155,3 +172,9 @@ if __name__ == "__main__":
         text = f.read()
     res = classify_quality(text)
     print(res)
+
+    # sample_url(
+    #     input_file='cs336_data/data/wet.paths',
+    #     output_file='cs336_data/data/sampled_wet.paths',
+    #     sample_num=1000
+    # )

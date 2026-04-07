@@ -12,6 +12,15 @@ def identify_language(
     lables, scores = model.predict(text=text.replace('\n', ''), k=1) # ('__label__en',) [0.15209572]
     return (lables[0].replace('__label__', ''), scores[0])
 
+def is_en(
+    text: str, 
+    model: Any = None
+) -> bool:
+    label, score = identify_language(text=text, model=model)
+    if label == 'en' and score > 0.95:
+        return True
+    return False
+
 
 def identify_language_in_warc_file(file_path: str, max_records: int = 20):
     records = extract_warc_file(file_path=file_path, max_records=max_records)
